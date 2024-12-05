@@ -185,7 +185,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     req.cookies.refreshToken || req.body.refreshToken;
 
   if (!incomingRefreshToken) {
-    throw new ApiError(401, "Unautohrized request");
+    throw new ApiError(401, "Unauthorized request");
   }
 
   try {
@@ -201,7 +201,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 
     if (incomingRefreshToken !== user?.refreshToken) {
-      throw new ApiError(401, "refresh token is expires or used");
+      throw new ApiError(401, "refresh token is expired or used");
     }
 
     const options = {
