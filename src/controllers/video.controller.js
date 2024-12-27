@@ -33,6 +33,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     const skip = (page - 1) * limit;
 
     const videos = await Video.find(filter)
+      .populate("owner", "fullName")
       .sort({ [sortBy]: sortType === "asc" ? 1 : -1 })
       .skip(skip)
       .limit(Number(limit));
@@ -125,7 +126,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     {
       new: true,
     }
-  );
+  ).populate("owner", "fullName");
 
   return res
     .status(200)
@@ -218,6 +219,16 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, videoPublished, "Publish satus changed"));
 });
 
+const getUploadedVideos = asyncHandler(async (req, res) => {
+  const owner = req.user._id;
+
+  const videos = await Video.find({ owner });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { videos }, "Videos fetched successfully"));
+});
+
 export {
   getAllVideos,
   publishAVideo,
@@ -225,4 +236,5 @@ export {
   updateVideo,
   deleteVideo,
   togglePublishStatus,
+  getUploadedVideos,
 };

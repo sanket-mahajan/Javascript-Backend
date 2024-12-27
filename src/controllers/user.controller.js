@@ -465,10 +465,39 @@ const getWatchHistory = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        user[0].watchHistory,
+        user[0].watchHistory || [],
         "Watch history fetched successfully"
       )
     );
+});
+
+const updateWatchHistory = asyncHandler(async (req, res) => {
+  const { videoId } = req.body;
+
+  // // Validate the videoId format
+  // if (!mongoose.Types.ObjectId.isValid(videoId)) {
+  //   throw new ApiError(400, "Invalid video ID format");
+  // }
+
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  // Check if the video is already in the watchHistory
+  const alreadyWatched = user.watchHistory?.some(
+    (history) => history?.videoId?.toString() === videoId
+  );
+
+  if (!alreadyWatched) {
+    user.watchHistory.push(videoId); // Push only the ObjectId
+    await user.save();
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user.watchHistory, "Watch history updated"));
 });
 
 export {
@@ -483,4 +512,5 @@ export {
   updateUserCoverImage,
   getUserChannelProfile,
   getWatchHistory,
+  updateWatchHistory,
 };
