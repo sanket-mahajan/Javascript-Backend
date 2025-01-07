@@ -479,21 +479,29 @@ const updateWatchHistory = asyncHandler(async (req, res) => {
   //   throw new ApiError(400, "Invalid video ID format");
   // }
 
-  const user = await User.findById(req.user._id);
+  const userId = await User.findById(req.user._id);
 
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
+  // if (!user) {
+  //   throw new ApiError(404, "User not found");
+  // }
 
-  // Check if the video is already in the watchHistory
-  const alreadyWatched = user.watchHistory?.some(
-    (history) => history?.videoId?.toString() === videoId
+  // // Check if the video is already in the watchHistory
+  // const alreadyWatched = user.watchHistory?.some(
+  //   (history) => history?.videoId?.toString() === videoId
+  // );
+
+  // if (!alreadyWatched) {
+  //   user.watchHistory.push(videoId); // Push only the ObjectId
+  //   await user.save();
+  // }
+
+  // const { userId, videoId } = req.body;
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $addToSet: { watchHistory: videoId } },
+    { new: true }
   );
-
-  if (!alreadyWatched) {
-    user.watchHistory.push(videoId); // Push only the ObjectId
-    await user.save();
-  }
 
   return res
     .status(200)

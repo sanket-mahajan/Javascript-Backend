@@ -126,7 +126,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     {
       new: true,
     }
-  ).populate("owner", "fullName");
+  ).populate("owner", "fullName avatar ");
 
   return res
     .status(200)

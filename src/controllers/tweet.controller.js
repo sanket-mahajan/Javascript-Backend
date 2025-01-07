@@ -1,9 +1,47 @@
 import mongoose, { isValidObjectId } from "mongoose";
 import { Tweet } from "../models/tweet.model.js";
-import { User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { User } from "../models/user.model.js";
+
+const getAllTweets = asyncHandler(async (req, res) => {
+  const { query, sortBy = "createdAt", sortType = "desc" } = req.query;
+
+  const filter = {};
+
+  if (query) {
+    // Find users whose fullname matches the query
+    const users = await User.find({
+      fullname: { $regex: query, $options: "i" },
+    });
+    const userIds = users.map((user) => user._id);
+
+    // Filter tweets by content or matching owner IDs
+    filter.$or = [
+      { content: { $regex: query, $options: "i" } },
+      { owner: { $in: userIds } },
+    ];
+  }
+
+  try {
+    const tweets = await Tweet.find(filter)
+      .populate("owner", "fullName")
+      .sort({ [sortBy]: sortType === "asc" ? 1 : -1 });
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          tweets,
+        },
+        "Tweets fetched successfully"
+      )
+    );
+  } catch (error) {
+    throw new ApiError(500, "Error fetching Tweets: " + error.message);
+  }
+});
 
 const createTweet = asyncHandler(async (req, res) => {
   //TODO: create tweet
@@ -26,19 +64,24 @@ const createTweet = asyncHandler(async (req, res) => {
 
 const getUserTweets = asyncHandler(async (req, res) => {
   // TODO: get user tweets
+  const { query, sortBy = "createdAt", sortType = "desc" } = req.query;
   const { userId } = req.params;
-
   if (!userId || !isValidObjectId(userId)) {
     throw new ApiError(400, "Provide valid ID");
   }
 
-  const userTweet = await Tweet.find({
-    owner: userId,
-  });
+  const filter = {};
+  filter.owner = userId;
+  if (query) filter.$or = [{ content: { $regex: query, $options: "i" } }];
+  const userTweet = await Tweet.find(filter)
+    .populate("owner", "fullName")
+    .sort({ [sortBy]: sortType === "asc" ? 1 : -1 });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, userTweet, "Tweets fetched successfully"));
+    .json(
+      new ApiResponse(200, { tweets: userTweet }, "Tweets fetched successfully")
+    );
 });
 
 const updateTweet = asyncHandler(async (req, res) => {
@@ -82,4 +125,4 @@ const deleteTweet = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, tweet, "Tweet deleted"));
 });
 
-export { createTweet, getUserTweets, deleteTweet, updateTweet };
+export { createTweet, getUserTweets, deleteTweet, updateTweet, getAllTweets };
