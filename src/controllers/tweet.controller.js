@@ -84,6 +84,22 @@ const getUserTweets = asyncHandler(async (req, res) => {
     );
 });
 
+const getTweetById = asyncHandler(async (req, res) => {
+  // TODO: get user tweets
+  const { tweetId } = req.params;
+  if (!tweetId || !isValidObjectId(tweetId)) {
+    throw new ApiError(400, "Provide valid ID");
+  }
+  const tweet = await Tweet.findById(tweetId).populate(
+    "owner",
+    "fullName avatar"
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { tweet }, "Tweet fetched successfully"));
+});
+
 const updateTweet = asyncHandler(async (req, res) => {
   //TODO: update tweet
   const { tweetId } = req.params;
@@ -125,4 +141,11 @@ const deleteTweet = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, tweet, "Tweet deleted"));
 });
 
-export { createTweet, getUserTweets, deleteTweet, updateTweet, getAllTweets };
+export {
+  createTweet,
+  getUserTweets,
+  deleteTweet,
+  updateTweet,
+  getAllTweets,
+  getTweetById,
+};

@@ -184,9 +184,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
   const del = await Video.findByIdAndDelete(videoId);
 
-  res
-    .status(200)
-    .json(200, new ApiResponse(200, del, "Video Deleted successfully"));
+  res.status(200).json(new ApiResponse(200, del, "Video Deleted successfully"));
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {

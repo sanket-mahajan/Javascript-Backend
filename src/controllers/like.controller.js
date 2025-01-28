@@ -122,4 +122,43 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     );
 });
 
-export { toggleCommentLike, toggleTweetLike, toggleVideoLike, getLikedVideos };
+const getLikedTweets = asyncHandler(async (req, res) => {
+  // Fetch all liked videos for the current user
+  const likedTweets = await Like.find({
+    likedBy: req.user._id,
+    tweet: { $exists: true },
+  })
+    .populate("tweet")
+    .select("-__v");
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, likedTweets, "Liked Tweets fetched successfully")
+    );
+});
+
+const getLikedComments = asyncHandler(async (req, res) => {
+  // Fetch all liked videos for the current user
+  const likedComments = await Like.find({
+    likedBy: req.user._id,
+    comment: { $exists: true },
+  })
+    .populate("comment")
+    .select("-__v");
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, likedComments, "Liked Comments fetched successfully")
+    );
+});
+
+export {
+  toggleCommentLike,
+  toggleTweetLike,
+  toggleVideoLike,
+  getLikedVideos,
+  getLikedComments,
+  getLikedTweets,
+};
