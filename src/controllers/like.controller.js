@@ -115,10 +115,16 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     .populate("video")
     .select("-__v");
 
+  const validLikedVideos = likedVideos.filter((like) => like.video !== null);
+
   return res
     .status(200)
     .json(
-      new ApiResponse(200, likedVideos, "Liked videos fetched successfully")
+      new ApiResponse(
+        200,
+        validLikedVideos,
+        "Liked videos fetched successfully"
+      )
     );
 });
 

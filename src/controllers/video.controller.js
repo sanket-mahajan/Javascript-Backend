@@ -3,6 +3,8 @@ import { ApiError } from "../utils/ApiError.js";
 import { Video } from "../models/video.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { Like } from "../models/like.model.js";
+import { Comment } from "../models/comment.model.js";
 
 // ToDo : Use isvalidObjectId also operations on vdo can be done by user only
 
@@ -176,15 +178,27 @@ const updateVideo = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: delete video
 
   if (!videoId) {
     throw new ApiError(400, "Enter valid ID");
   }
 
-  const del = await Video.findByIdAndDelete(videoId);
+  // Find the video before deleting
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(404, "Video not found");
+  }
 
-  res.status(200).json(new ApiResponse(200, del, "Video Deleted successfully"));
+  // Delete related likes and comments
+  await Like.deleteMany({ videoId: videoId });
+  await Comment.deleteMany({ videoId: videoId });
+
+  // Delete the video itself
+  await video.deleteOne();
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, null, "Video Deleted successfully"));
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
